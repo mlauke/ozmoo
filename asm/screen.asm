@@ -69,7 +69,7 @@ z_ins_erase_window
 	ldx z_operand_value_low_arr
 ;    jmp erase_window ; Not needed, since erase_window follows
 }
-	
+
 erase_window
 	; x = 0: clear lower window
 	;     1: clear upper window
@@ -104,7 +104,7 @@ erase_window
 -   jsr s_erase_line
 	inc zp_screenrow
 	lda zp_screenrow
-	cmp #25
+	cmp #SCREEN_HEIGHT
 	bcc -
 	jsr clear_num_rows
 	; set cursor to top left (or, if Z4, bottom left)
@@ -136,7 +136,7 @@ erase_window
 .end_erase
 	pla
 	sta zp_screenrow
-.return	
+.return
 	rts
 
 !ifdef Z4PLUS {
@@ -218,7 +218,7 @@ z_ins_print_table
 	pla
 	adc .pt_skip + 1
 	bcc -- ; Always jump
-.print_table_done	
+.print_table_done
 	rts
 .print_table_oneline
 	lda z_operand_value_high_arr ; Start address
@@ -234,11 +234,11 @@ z_ins_print_table
 	rts
 }
 
-z_ins_buffer_mode 
+z_ins_buffer_mode
 	; buffer_mode flag
 	; If buffer mode goes from 0 to 1, remember the start column
-	; If buffer mode goes from 1 to 0, flush the buffer 
-	
+	; If buffer mode goes from 1 to 0, flush the buffer
+
 	lda z_operand_value_low_arr
 	beq +
 	lda #1
@@ -296,7 +296,7 @@ split_window
 !ifndef Z4PLUS {
 	ldx #1
 	jsr erase_window
-}	
+}
 	lda current_window
 	beq .ensure_cursor_in_window
 	; Window 1 was already selected => Reset cursor if outside window
@@ -335,7 +335,7 @@ select_upper_window
 	ldx #1
 	stx current_window
 .reset_cursor
-!ifndef Z4PLUS { ; Since Z3 has a separate statusline 
+!ifndef Z4PLUS { ; Since Z3 has a separate statusline
 	ldx #1
 } else {
 	ldx #0
@@ -371,7 +371,7 @@ z_ins_get_cursor
 	; sta (string_array),y
 	ldx current_window
 	beq + ; We are in lower window, jump to read last cursor pos in upper window
-	jsr get_cursor ; x=row, y=column	
+	jsr get_cursor ; x=row, y=column
 -	inx ; In Z-machine, cursor has position 1+
 	iny ; In Z-machine, cursor has position 1+
 	lda #0
@@ -394,7 +394,7 @@ z_ins_get_cursor
 	; rts
 +	ldx cursor_row + 1
 	ldy cursor_column + 1
-	jmp -	
+	jmp -
 
 
 z_ins_set_cursor
@@ -475,11 +475,11 @@ show_more_prompt
 +
 }
 .more_access1
-	lda SCREEN_ADDRESS + (SCREEN_WIDTH*SCREEN_HEIGHT-1) 
+	lda SCREEN_ADDRESS + (SCREEN_WIDTH*SCREEN_HEIGHT-1)
 	sta .more_text_char
 	lda #128 + $2a ; screen code for reversed "*"
 .more_access2
-	sta SCREEN_ADDRESS + (SCREEN_WIDTH*SCREEN_HEIGHT-1) 
+	sta SCREEN_ADDRESS + (SCREEN_WIDTH*SCREEN_HEIGHT-1)
 
 	; wait for ENTER
 .alternate_colours
@@ -645,7 +645,7 @@ printchar_buffered
 	; If we can't find a place to break, and buffered output started in column > 0, print a line break and move the text in the buffer to the next line.
 	ldx first_buffered_column
 	bne .move_remaining_chars_to_buffer_start
-.print_40_2	
+.print_40_2
 	ldy max_chars_on_line
 .store_break_pos
 	sty last_break_char_buffer_pos
@@ -729,7 +729,7 @@ printstring_raw
 	inx
 	bne .read_byte
 +	rts
-	
+
 set_cursor
 	; input: y=column (0-39)
 	;        x=row (0-24)
@@ -787,12 +787,12 @@ draw_status_line
 	lda #18 ; reverse on
 	jsr s_printchar
 	ldx darkmode
-	ldy statuslinecol,x 
+	ldy statuslinecol,x
 	lda zcolours,y
 	jsr s_set_text_colour
 	;
 	; Room name
-	; 
+	;
 	; name of the object whose number is in the first global variable
 	lda #16
 	jsr z_get_low_global_variable_value
@@ -809,7 +809,7 @@ draw_status_line
 	;
 	; score or time game?
 	;
-+   
++
 !ifdef Z3 {
 	ldy #header_flags_1
 	jsr read_header_word
@@ -844,7 +844,7 @@ draw_status_line
 	bne +
 	lda #47
 	jsr s_printchar
-	jmp ++	
+	jmp ++
 +	ldx #0
 	jsr set_cursor
 	ldy #0
@@ -914,7 +914,7 @@ draw_status_line
 	jsr printstring_raw
 .statusline_done
 	ldx darkmode
-	ldy fgcol,x 
+	ldy fgcol,x
 	lda zcolours,y
 	jsr s_set_text_colour
 	lda #146 ; reverse off
@@ -950,4 +950,3 @@ draw_status_line
 .time_str !pet "Time: ",0
 .ampm_str !pet " AM",0
 }
-

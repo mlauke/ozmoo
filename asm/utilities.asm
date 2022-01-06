@@ -58,7 +58,7 @@ plus4_enable_rom = $ff3e
 	lda #%00111111 ; all RAM0
 	sta $ff00
 } else {
-	lda #%00110000 
+	lda #%00110000
 !ifdef TARGET_PLUS4 {
 ;	sta plus4_enable_ram
 } else {
@@ -73,7 +73,7 @@ plus4_enable_rom = $ff3e
 	lda #%00111111 ; all RAM0
 	sta $ff00
 } else {
-	lda #%00110000 
+	lda #%00110000
 !ifdef TARGET_PLUS4 {
 ;	sta plus4_enable_ram
 } else {
@@ -127,7 +127,7 @@ plus4_enable_rom = $ff3e
 
 ; to be expanded to disable NMI IRQs later if needed
 !macro disable_interrupts {
-	sei 
+	sei
 }
 
 !macro enable_interrupts {
@@ -164,7 +164,7 @@ read_next_byte_at_z_pc_sub
 !macro read_next_byte_at_z_pc {
 	jsr read_next_byte_at_z_pc_sub
 }
-	
+
 } else {
 
 !macro read_next_byte_at_z_pc {
@@ -174,7 +174,7 @@ read_next_byte_at_z_pc_sub
 	bne ++
 	jsr inc_z_pc_page
 ++
-}	
+}
 
 }
 
@@ -225,7 +225,7 @@ string_array_write_byte
 	sta z_address
 	lda .temp
 	rts
-	
+
 parse_array_read_byte
 	sty .temp
 	stx .temp + 1
@@ -413,7 +413,9 @@ fatalerror
 	jsr printstring
 	pla
 	tax
+!ifndef TARGET_SSW {
 	stx SCREEN_ADDRESS + 79
+}
 	lda #0
 	jsr printinteger
 	lda #$0d
@@ -447,7 +449,7 @@ fatalerror
 
 space
 	; subroutine: print space
-	; input: 
+	; input:
 	; output:
 	; used registers:
 	; side effects:
@@ -465,7 +467,7 @@ space
 
 comma
 	; subroutine: print comma
-	; input: 
+	; input:
 	; output:
 	; used registers:
 	; side effects:
@@ -483,7 +485,7 @@ comma
 
 dollar
 	; subroutine: print dollar
-	; input: 
+	; input:
 	; output:
 	; used registers:
 	; side effects:
@@ -501,7 +503,7 @@ dollar
 
 colon
 	; subroutine: print colon
-	; input: 
+	; input:
 	; output:
 	; used registers:
 	; side effects:
@@ -519,7 +521,7 @@ colon
 
 arrow
 	; subroutine: print ->
-	; input: 
+	; input:
 	; output:
 	; used registers:
 	; side effects:
@@ -540,7 +542,7 @@ arrow
 
 newline
 	; subroutine: print newline
-	; input: 
+	; input:
 	; output:
 	; used registers:
 	; side effects:
@@ -615,7 +617,7 @@ printa
 
 pause
 	; subroutine: print newline
-	; input: 
+	; input:
 	; output:
 	; used registers:
 	; side effects:
@@ -636,7 +638,7 @@ pause
 
 print_following_string
 	; print text (implicit argument passing)
-	; input: 
+	; input:
 	; output:
 	; used registers: a
 	; side effects:
@@ -667,7 +669,7 @@ print_following_string
 
 	; put updated return address on stack
 +   lda .return_address + 2
-	pha 
+	pha
 	lda .return_address + 1
 	pha
 	rts
@@ -694,7 +696,7 @@ print_trace
 	sbc #40
 	tay
 	ldx #0
-.print_next_op	
+.print_next_op
 	jsr printx
 	jsr comma
 	jsr dollar
@@ -768,13 +770,13 @@ print_bad_zscii_code
 	jsr .print_byte_as_hex_one_char
 	pla
 	rts
-	
+
 .print_byte_as_hex_one_char
 	bit .print_bad_code_buffered
 	bmi +
 	jmp s_printchar
 +	bvs +
-	jmp printchar_buffered	
+	jmp printchar_buffered
 +	jmp streams_print_output
 
 .print_bad_code_buffered	!byte 0	; 0 = s_printchar, $80 = printchar_buffered, $ff = streams_print_output
@@ -872,33 +874,33 @@ mult8
 	rol multiplier + 1
 	bcc - ; Always branch
 ++	rts
-	
+
 
 mult16
 	;16-bit multiply with 32-bit product
 	;http://codebase64.org/doku.php?id=base:16bit_multiplication_32-bit_product
 	lda #$00
 	sta product+2 ; clear upper bits of product
-	sta product+3 
-	ldx #$10 ; set binary count to 16 
+	sta product+3
+	ldx #$10 ; set binary count to 16
 shift_r
-	lsr multiplier+1 ; divide multiplier by 2 
+	lsr multiplier+1 ; divide multiplier by 2
 	ror multiplier
-	bcc rotate_r 
+	bcc rotate_r
 	lda product+2 ; get upper half of product and add multiplicand
 	clc
 	adc multiplicand
 	sta product+2
-	lda product+3 
+	lda product+3
 	adc multiplicand+1
 rotate_r
-	ror ; rotate partial product 
-	sta product+3 
+	ror ; rotate partial product
+	sta product+3
 	ror product+2
-	ror product+1 
-	ror product 
+	ror product+1
+	ror product
 	dex
-	bne shift_r 
+	bne shift_r
 	rts
 multiplier
 divisor
@@ -908,7 +910,7 @@ dividend
 division_result
 	!byte 0, 0
 product
-remainder 
+remainder
 	!byte 0 ,0 ,0 ,0
 
 ; divisor = $58     ;$59 used for hi-byte
@@ -917,14 +919,14 @@ remainder
 ; result = dividend ;save memory by reusing divident to store the result
 
 !zone {
-divide16	
+divide16
 	lda #0          ;preset remainder to 0
 	sta remainder
 	sta remainder + 1
 	ldx #16         ;repeat for each bit: ...
 .divloop
 	asl dividend	;dividend lb & hb*2, msb -> Carry
-	rol dividend + 1	
+	rol dividend + 1
 	rol remainder	;remainder lb & hb * 2 + msb from carry
 	rol remainder + 1
 	lda remainder
