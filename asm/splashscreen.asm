@@ -54,7 +54,7 @@ splash_line_y
 !source "splashlines.asm"
 
 splash_index_line
-	!byte 4, 6, 8, 10, 24
+	!byte 4, 6, 8, 10, SCREEN_HEIGHT-1
 splash_index_lb
 	!byte <splashline0, <splashline1, <splashline2, <splashline3, <splashline4
 splash_index_hb

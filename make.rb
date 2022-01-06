@@ -1215,7 +1215,7 @@ def build_P(storyname, diskimage_filename, config_data, vmem_data, vmem_contents
 		puts "ERROR: The whole story doesn't fit in memory. Please try another build mode."
 		exit 1
 	end
-
+	
 	disk = D64_image.new(disk_title: storyname, diskimage_filename: diskimage_filename, is_boot_disk: boot_disk, forty_tracks: extended_tracks)
 
 	disk.add_story_data(max_story_blocks: max_story_blocks, add_at_end: extended_tracks) # Has to be run to finalize the disk
@@ -1864,7 +1864,7 @@ begin
 			if $target == "mega65" then
 			    $start_address = 0x1001
          elsif $target == "ssw" then
-            $start_address = 0x1000
+            $start_address = 0x800
             $memory_end_address = 0xe400
             $unbanked_ram_end_address = $memory_end_address
 				$normal_ram_end_address = $memory_end_address

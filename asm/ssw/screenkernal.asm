@@ -111,28 +111,37 @@ s_printchar:
 	cmp #KEY_CR
 	bne +
 	lda #KEY_LF
-	bra .out
++ 	cmp #$F5	; 
+	bne +
+	lda #$7c	; pipe-sign
++	cmp #$12 	; reverse on
+	beq .ignore
+	cmp #$92	; reverse off
+	beq .ignore	
 +	cmp #147
 	bne +
 	jmp krn_textui_clrscr_ptr
 +	cmp #$41		; lower case petscii
-	bcc +
+	bcc .out
 	cmp #$5a+1
 	bcs +
+.space
 	ora #$20
 	bra .out
-+  cmp #$c1
++  	cmp #$c1
 	bcc .out
 	cmp #$da+1
-	bcs .out
+	bcs .dbg
 	and #$7f
 .out
 	jmp krn_chrout
+.dbg
+	+dbg
+	cli
 .ignore:
 	rts
 
 !ifdef Z5PLUS {
-
 z_ins_set_colour
 	; set_colour foreground background [window]
 	; (window is not used in Ozmoo)

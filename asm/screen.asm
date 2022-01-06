@@ -712,10 +712,9 @@ printchar_buffered
 .save_y			   !byte 0
 first_buffered_column !byte 0
 
-clear_screen_raw
-	lda #147
-	jsr s_printchar
-	rts
+;clear_screen_raw - dead code /MLA
+;	lda #147
+;	jmp s_printchar
 
 printstring_raw
 ; Parameters: Address in a,x to 0-terminated string
