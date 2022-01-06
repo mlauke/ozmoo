@@ -8,13 +8,13 @@ ask_for_save_device !byte $ff
 !ifndef VMEM {
 disk_info
 	!byte 0, 0, 1  ; Interleave, save slots, # of disks
-	!byte 8, 8, 0, 0, 0, 130, 131, 0 
+	!byte 8, 8, 0, 0, 0, 130, 131, 0
 } else {
 
 device_map !byte 0,0,0,0,0,0,0,0
 
 nonstored_pages			!byte 0
-readblocks_numblocks	!byte 0 
+readblocks_numblocks	!byte 0
 readblocks_currentblock	!byte 0,0 ; 257 = ff 1
 readblocks_currentblock_adjusted	!byte 0,0 ; 257 = ff 1
 readblocks_mempos		!byte 0,0 ; $2000 = 00 20
@@ -50,7 +50,7 @@ readblocks
 	jsr comma
 	lda readblocks_mempos + 1
 	jsr print_byte_as_hex
-	lda readblocks_mempos 
+	lda readblocks_mempos
 	jsr print_byte_as_hex
 	jsr newline
 }
@@ -105,11 +105,11 @@ readblock
 	bvs .readblock_from_reu
 }
 	; convert block to track/sector
-	
+
 	lda disk_info + 2 ; Number of disks
 	ldx #0 ; Memory index
 	ldy #0 ; Disk id
-.check_next_disk	
+.check_next_disk
 	txa
 	clc
 	adc disk_info + 3,x
@@ -170,7 +170,7 @@ readblock
 	cpy disk_info + 2 ; # of disks
 	bcs +
 	jmp .check_next_disk
-+	lda #ERROR_OUT_OF_MEMORY ; Meaning request for Z-machine memory > EOF. Bad message? 
++	lda #ERROR_OUT_OF_MEMORY ; Meaning request for Z-machine memory > EOF. Bad message?
 	jmp fatalerror
 } else {
 	jmp .check_next_disk
@@ -194,10 +194,10 @@ readblock
 	lsr
 	lsr
 	lsr
-	lsr	
+	lsr
 	and #%00000110; a now holds # of sectors at start of track not in use
 	sta .skip_sectors
-; Initialize track map. Write 0 for sectors not yet used, $ff for sectors used 
+; Initialize track map. Write 0 for sectors not yet used, $ff for sectors used
 	lda disk_info + 8,x
 	and #%00111111
 	clc
@@ -217,7 +217,7 @@ readblock
 ;		2. Find next free sector
 ;		3. Decrease blocks to go. If < 0, we are done
 ;		4. Mark sector as used.
-;		5. Add interleave, go back to 2	
+;		5. Add interleave, go back to 2
 ; 1
 	lda #0
 ; 2
@@ -240,7 +240,7 @@ readblock
 	tya
 	clc
 	adc disk_info ; #SECTOR_INTERLEAVE
-.check_sector_range	
+.check_sector_range
 	cmp .sector_count
 	bcc -
 	sbc .sector_count ; c is already set
@@ -286,7 +286,7 @@ read_track_sector
 	jsr m65_get_track_address
 
 	; Copy a logical sector (256 bytes) to main RAM
-	
+
 	clc
 	adc .sector
 	sta dma_source_address + 1
@@ -305,17 +305,17 @@ read_track_sector
 	sty dma_count
 
 m65_run_dma
-	
+
 	jsr mega65io
 	lda #0
 	sta $d702 ; DMA list is in bank 0
 	lda #>dma_list
 	sta $d701
 	lda #<dma_list
-	sta $d705 
+	sta $d705
 	cli
 	clc
-	rts	
+	rts
 
 m65_start_disk_access
 	jsr mega65io
@@ -450,7 +450,7 @@ m65_read_track
 
 	lda m65_track_buffer_startpage,y
 	sta m65_track_mempos ; The page in bank 1 where we store this track
-	
+
 	; lda #52
 	; sta SCREEN_ADDRESS + 3*80 ; Show status "4"
 	jsr m65_get_current_trackno
@@ -541,13 +541,13 @@ m65_read_track
 	; lda #5
 	; sta SCREEN_ADDRESS + 5*80 + 4 ; Show status "E"
 
-	
+
 	; Copy physical sector (512 bytes) from FDC buffer to bank 1
 
 	lda $d689
 	and #%01111111
 	sta $d689 ; Clear BUFSEL
-	
+
 	lda m65_sector_order,x ; Physical sector# - 1 (0 .. 9)
 	asl ; 2 pages per sector
 	adc m65_track_mempos ; Carry is already clear
@@ -564,7 +564,7 @@ m65_read_track
 	; lda #0
 	; sta 198
 ;	jsr kernal_readchar
-	
+
 	dex
 	bpl .read_next_sector
 
@@ -608,7 +608,7 @@ m65_pause_1ms
 	rts
 
 
-m65_disk_enabled			!byte 0 ; Increases with every call to m65_start_disk_access, 
+m65_disk_enabled			!byte 0 ; Increases with every call to m65_start_disk_access,
 m65_pause					!byte 0
 m65_track_buffer_trackno 	!fill 12, $ff
 m65_track_buffer_flag	 	!fill 12, 0
@@ -620,7 +620,7 @@ m65_current_trackno			!byte $ff
 m65_disk_tmp				!byte 0
 m65_mempos_tmp				!byte 0
 m65_sector_order			!byte 9,7,5,3,1,8,6,4,2,0 ; Read in reverse order. Uses our internal numbering 0-9, add 1 to get physical sector.
-	
+
 dma_list
 	!byte $0b ; Use 12-byte F011B DMA list format
 	!byte $80 ; Set source address bit 20-27
@@ -661,7 +661,7 @@ read_track_sector
 	jsr dollar
 	lda readblocks_mempos + 1
 	jsr print_byte_as_hex
-	lda readblocks_mempos 
+	lda readblocks_mempos
 	jsr print_byte_as_hex
 	jsr comma
 	ldx readblocks_currentblock
@@ -965,7 +965,7 @@ z_ins_restart
 .restart_code_address = 30000 ; $7530
 }
 
-.restart_code_begin
+.restart_code_beginfid
 .restart_code_string_final_pos = .restart_code_string - .restart_code_begin + .restart_code_address
 	ldx #0
 -	lda .restart_code_string_final_pos,x
@@ -1121,7 +1121,7 @@ z_ins_save
 	; Add code to print error code!
 	lda #0
 	rts
-	
+
 list_save_files
 	lda #13
 	jsr s_printchar
@@ -1134,11 +1134,12 @@ list_save_files
 	dex
 	bne -
 	; Remember address of row where first entry is printed
+!ifndef TARGET_SSW{ ; decoupling from zp_screenline/zp_colourline - save cursor position instead of screen pointer
 	lda zp_screenline
 	sta .base_screen_pos
 	lda zp_screenline + 1
 	sta .base_screen_pos + 1
-
+}
 	; open the channel file
 !ifdef TARGET_C128 {
 	lda #$00
@@ -1166,7 +1167,7 @@ list_save_files
 	dey
 	bne -
 
-.read_next_line	
+.read_next_line
 	lda #0
 	sta zp_temp + 1
 	; Read row pointer
@@ -1200,18 +1201,20 @@ list_save_files
 	lda COLS_40_80
 	bne +++
 }
-; Set the first 40 chars of each row to the current text colour	
+; Set the first 40 chars of each row to the current text colour
 	lda s_colour
 !ifdef TARGET_PLUS4 {
 	tay
-	lda plus4_vic_colours,y 
+	lda plus4_vic_colours,y
 }
-	ldy #39
+!ifndef TARGET_SSW{ ; decoupling from zp_screenline/zp_colourline - save cursor position instead of screen pointer
+	ldy #39	; TODO FIXME hardwired screen stuff
 -	sta (zp_colourline),y
 	dey
 	bpl -
+}
 +++
-	
+
 	txa
 	sta .occupied_slots - $30,x
 	jsr s_printchar
@@ -1220,9 +1223,9 @@ list_save_files
 	lda #32
 	jsr s_printchar
 	dec zp_temp + 1
-	
+
 -	jsr kernal_readchar
-.not_a_save_file	
+.not_a_save_file
 	cmp #$22 ; Charcode for "
 	beq .end_of_name
 	bit zp_temp + 1
@@ -1238,7 +1241,7 @@ list_save_files
 	lda #13
 	jsr s_printchar
 	jmp .read_next_line
-	
+
 .end_of_dir
 	jsr close_io
 
@@ -1251,16 +1254,18 @@ list_save_files
 	lda COLS_40_80
 	bne +++
 }
-; Set the first 40 chars of each row to the current text colour	
+; Set the first 40 chars of each row to the current text colour
 	lda s_colour
 !ifdef TARGET_PLUS4 {
 	tay
-	lda plus4_vic_colours,y 
+	lda plus4_vic_colours,y
 }
+!ifndef TARGET_SSW{ ; decoupling from zp_screenline/zp_colourline - save cursor position instead of screen pointer
 	ldy #39
 ---	sta (zp_colourline),y
 	dey
 	bpl ---
+}
 +++
 
 	txa
@@ -1281,7 +1286,7 @@ list_save_files
 	ldx .sort_item
 	cpx disk_info + 1; # of save slots
 	bcc -
-	
+
 	lda #1 ; Signal success
 	rts
 
@@ -1446,8 +1451,8 @@ vdc_insertion_sort
 	ldx window_start_row + 1 ; First line in lower window
 	ldy #0
 	jmp set_cursor
-}	
-	
+}
+
 
 .insert_story_disk
 	ldy .last_disk
@@ -1503,7 +1508,7 @@ maybe_ask_for_save_device
 .incorrect_device
 	sec
 	rts
-	
+
 restore_game
 
 !ifdef TARGET_C128 {
@@ -1544,7 +1549,7 @@ restore_game
 	ldx #<.restore_msg
 	jsr printstring_raw
 	jsr .swap_pointers_for_save
-	
+
 	; Perform restore
 	jsr do_restore
 	bcs .restore_failed    ; if carry set, a file error has happened
@@ -1572,7 +1577,7 @@ restore_game
 	bmi .restore_success_dont_insert_story_disk
 }
 	jsr .insert_story_disk
-.restore_success_dont_insert_story_disk	
+.restore_success_dont_insert_story_disk
 ;	inc zp_pc_l ; Make sure read_byte_at_z_address
 !ifdef Z4PLUS {
 !ifdef TARGET_C128 {
@@ -1630,7 +1635,7 @@ save_game
 	bpl .restore_failed ; not a number (0-9)
 	sta .filename + 1
 	sta .erase_cmd + 3
-	
+
 	; Enter a name
 	lda #>.savename_msg ; high
 	ldx #<.savename_msg ; low
@@ -1638,7 +1643,7 @@ save_game
 	jsr .input_alphanum
 	cpx #0
 	beq .restore_failed
-	
+
 	; Print "Saving..."
 	lda #>.save_msg
 	ldx #<.save_msg
@@ -1662,13 +1667,13 @@ save_game
 	bcs .restore_failed  ; if carry set, the file could not be opened
 	lda #$0f      ; filenumber 15
 	jsr kernal_close
-	
+
 	; Swap in z_pc and stack_ptr
 	jsr .swap_pointers_for_save
 !ifdef TARGET_C128 {
 	jsr .copy_stack_and_pointers_to_bank_1
 }
-	
+
 	; Perform save
 	jsr do_save
 	bcc +
@@ -1707,7 +1712,7 @@ do_restore
 	lda #$00      ; $00 means: load to memory (not verify)
 	jsr kernal_load
 	php ; store c flag so error can be checked by calling routine
-	lda #1 
+	lda #1
 	jsr kernal_close
 	plp ; restore c flag
 	rts
@@ -1746,16 +1751,16 @@ do_save
 	adc #>story_start_bank_1
 } else {
 	adc #>story_start
-}	
+}
 	tay
 	lda #savefile_zp_pointer ; start address located in zero page
 	jsr kernal_save
 	php ; store c flag so error can be checked by calling routine
-	lda #1 
+	lda #1
 	jsr kernal_close
 	plp ; restore c flag
 	rts
-	
+
 .last_disk	!byte 0
 .saveslot !byte 0
 .saveslot_msg_save	!pet 13,"Save to",0
@@ -1776,7 +1781,7 @@ do_save
 	dex
 	bpl -
 	rts
-	
+
 !ifdef TARGET_C128 {
 .copy_stack_and_pointers_to_bank_1
 	; Pick a cache page to use, one that the z_pc_mempointer isn't pointing to
@@ -1819,7 +1824,7 @@ do_save
 	cpy z_pc_mempointer + 1
 	bne +
 	inx
-+	
++
 	sta vmem_cache_page_index,x ; Mark as unused
 	txa
 	clc
@@ -1847,7 +1852,7 @@ do_save
 	bne - ; Always branch
 +	rts
 
-}	
+}
 
 wait_a_sec
 ; Delay ~1.2 s so player can read the last text before screen is cleared
@@ -1873,8 +1878,7 @@ wait_a_sec
 }
 	rts
 
-	
+
 }
 
 } ; end zone disk
-	

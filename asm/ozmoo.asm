@@ -17,6 +17,17 @@
 }
 }
 
+!ifdef TARGET_SSW {
+	TARGET_ASSIGNED = 1
+	SUPPORT_80COL = 1;
+	!ifdef SLOW {
+		; This is never used, since VMEM is always enabled for this target
+		!ifndef VMEM {
+;			SKIP_BUFFER = 1
+		}
+	}
+}
+
 !ifdef TARGET_MEGA65 {
 	TARGET_ASSIGNED = 1
 	HAS_SID = 1
@@ -405,7 +416,7 @@ z_jump_high_arr
 	!byte >z_not_implemented
 	!byte >z_not_implemented
 
-; VAR	
+; VAR
 
 	!byte >z_ins_call_xs
 	!byte >z_ins_loadw_and_storew
@@ -487,7 +498,7 @@ z_jump_high_arr
 
 
 ; =========================================== Lowbytes of jump table
-	
+
 z_jump_low_arr
 	!byte <z_ins_rtrue
 	!byte <z_ins_rfalse
@@ -550,7 +561,7 @@ z_jump_low_arr
 } else {
 	!byte <z_ins_call_xn
 }
-	
+
 ; 2OP
 
 	!byte <z_not_implemented
@@ -596,7 +607,7 @@ z_jump_low_arr
 	!byte <z_not_implemented
 	!byte <z_not_implemented
 
-; VAR	
+; VAR
 
 	!byte <z_ins_call_xs
 	!byte <z_ins_loadw_and_storew
@@ -746,8 +757,13 @@ c128_border_phase1
 	jmp $ff33	;return from IRQ
 
 } else {
-!source "constants.asm"
+	!ifdef TARGET_SSW {
+		!source "ssw/constants.asm"
+	} else {
+		!source "constants.asm"
+	}
 }
+
 !source "constants-header.asm"
 
 !if SUPPORT_REU = 1 {
@@ -779,7 +795,6 @@ game_id		!byte 0,0,0,0
 !if SPLASHWAIT > 0 {
 	jsr splash_screen
 }
-
 !ifdef VMEM {
 !ifdef TARGET_C64 {
 	; set up C64 SuperCPU if any
@@ -787,7 +802,7 @@ game_id		!byte 0,0,0,0
 	lda $d0bc ; SuperCPU control register (read only)
 	and #$80  ; DOS extension mode? 0 if SuperCPU, 1 if standard C64
 	beq .supercpu
-	;bne .nosupercpu 
+	;bne .nosupercpu
 	; it doesn't matter what you store in the SuperCPU control registers
 	; it is just the access itself that counts
 	;sta $d07e ; enable hardware registers
@@ -810,12 +825,10 @@ game_id		!byte 0,0,0,0
 	; Setup default dictionary
 	jsr parse_default_dictionary
 }
-
 !ifdef Z5PLUS {
 	; set up terminating characters
 	jsr parse_terminating_characters
 }
-	
 	jsr streams_init
 	jsr stack_init
 
@@ -825,7 +838,7 @@ game_id		!byte 0,0,0,0
 
 !ifdef TARGET_C128 {
 	; Let's speed things up.
-	; this needs to be after the z_init call since 
+	; this needs to be after the z_init call since
 	; z_init uses SID to initialize the random number generator
 	; and SID doesn't work in fast mode.
 	ldx COLS_40_80
@@ -836,13 +849,13 @@ game_id		!byte 0,0,0,0
 	sta use_2mhz_in_80_col
 	sta reg_2mhz	;CPU = 2MHz
 	lda $d011
-	; Clear top bit (to not break normal interrupt) and bit 4 to blank screen 
+	; Clear top bit (to not break normal interrupt) and bit 4 to blank screen
 	and #%01101111
 	sta $d011
 	jmp ++
 +	; 40 columns mode
 	; use 2MHz only when rasterline is in the border for VIC-II
-	sei 
+	sei
 	lda #<c128_border_phase2
 	ldx #>c128_border_phase2
 	sta $0314
@@ -855,7 +868,6 @@ game_id		!byte 0,0,0,0
 ++
 }
 	cli
-
 
 	jsr z_execute
 
@@ -870,17 +882,24 @@ game_id		!byte 0,0,0,0
 	jmp basic_reset
 }
 } else {
-	; Back to normal memory banks
-	lda #%00110111
-	sta 1
-;	+set_memory_normal
+	!ifndef TARGET_SSW {
+		; Back to normal memory banks
+		lda #%00110111
+		sta 1
+		; +set_memory_normal
+	}
 	jmp (basic_reset)
 }
 
 
 ; include other assembly files
 !source "utilities.asm"
-!source "screenkernal.asm"
+!ifdef TARGET_SSW {
+	!source "ssw/screenkernal.asm"
+	!source "ssw/io.asm"
+}else{
+	!source "screenkernal.asm"
+}
 !source "streams.asm" ; Must come before "text.asm"
 !source "disk.asm"
 !ifdef VMEM {
@@ -1081,7 +1100,7 @@ load_suggested_pages
 	cpx vmap_max_entries
 	bcc +
 	dex
-+	
++
 
 !ifdef TRACE_VM {
 	jsr print_vm_map
@@ -1090,7 +1109,7 @@ load_suggested_pages
 } ; ifndef NOSECTORPRELOAD
 } ; ifdef VMEM
 
-	
+
 program_end
 
 !ifdef USE_HISTORY {
@@ -1133,7 +1152,7 @@ end_of_routines_in_vmem_cache
 
 !ifndef TARGET_C128 {
 	!fill cache_pages * 256 - (* - vmem_cache_start_maybe),0 ; Typically 4 pages
-} 
+}
 
 !ifdef VMEM {
 	!if (stack_size + *) & 256 {
@@ -1168,7 +1187,7 @@ deletable_screen_init_1
 		; Default values are correct, nothing to do here.
 	}
 }
-	
+
 	lda #147 ; clear screen
 	jsr s_printchar
 	ldy #0
@@ -1201,13 +1220,13 @@ z_init
 !ifdef PREOPT {
 	jsr print_following_string
 	!pet "*** vmem optimization mode ***",13,13,0
-}	
+}
 }
 
 
 	lda #0
 	jsr set_z_exe_mode ; 0 = Normal
-	
+
 !ifdef TRACE {
 	; Setup trace
 	lda #0
@@ -1222,7 +1241,7 @@ z_init
 !ifdef Z7 {
 	jsr calc_z7_offsets
 }
-	
+
 	; Modify header to tell game about terp capabilities
 !ifndef Z4PLUS {
 	ldy #header_flags_1
@@ -1251,7 +1270,7 @@ z_init
 }
 !ifdef Z4PLUS {
 	lda #TERPNO ; Interpreter number (8 = C64)
-	ldy #header_interpreter_number 
+	ldy #header_interpreter_number
 	jsr write_header_byte
 	lda #(64 + 9) ; "I" = release 9
 	ldy #header_interpreter_version  ; Interpreter version. Usually ASCII code for a capital letter
@@ -1291,7 +1310,7 @@ z_init
 	ldy #header_font_height_units
 	jsr write_header_byte
 	; TODO: Store default background and foreground colour in 2c, 2d (or comply to game's wish?)
-	
+
 	; Copy alphabet pointer from header, or default
 	ldy #header_alphabet_table
 	jsr read_header_word
@@ -1314,7 +1333,7 @@ z_init
 ;.store_alphabet_pointer
 ;	stx alphabet_table
 ;	sty alphabet_table + 1
-	
+
 	; Copy z_pc from header
 	ldy #header_initial_pc
 	jsr read_header_word
@@ -1351,7 +1370,7 @@ z_init
 }
 	sta z_low_global_vars_ptr + 1
 	adc #1
-	sta z_high_global_vars_ptr + 1 
+	sta z_high_global_vars_ptr + 1
 
 !ifdef HAS_SID {
 	jsr init_sid
@@ -1361,7 +1380,7 @@ z_init
 	sta ted_volume
 }
 
-	
+
 !ifdef BENCHMARK {
 	lda #$ff
 	ldx #$80
@@ -1433,7 +1452,7 @@ deletable_init_start
 	sta mempointer
 
 	jmp init_screen_colours ; _invisible
-	
+
 
 
 !ifdef TARGET_C128 {
@@ -1468,7 +1487,7 @@ deletable_init
 
 
 
-; Turn off function key strings, to let F1 work for darkmode and F keys work in BZ 
+; Turn off function key strings, to let F1 work for darkmode and F keys work in BZ
 !ifdef TARGET_PLUS4_OR_C128 {
 	ldx #$85
 -	lda #1
@@ -1519,8 +1538,8 @@ deletable_init
 	ldx #1
 	ldy boot_device
 	jsr read_track_sector
-	
-	
+
+
 
 ; Copy game id
 	ldx #3
@@ -1542,7 +1561,7 @@ deletable_init
 	sta disk_info - 1,x
 	dex
 	bne -
-	
+
 	jsr auto_disk_config
 ;	jsr init_screen_colours
 } else { ; End of !ifdef VMEM
@@ -1670,7 +1689,7 @@ auto_disk_config
 	sta disk_info + 1
 	clc
 +	adc #$30
-	sta first_unavailable_save_slot_charcode 
+	sta first_unavailable_save_slot_charcode
 
 ; Figure out best device# for all disks set to auto device# (value = 0)
 	lda #0
@@ -1780,7 +1799,7 @@ insert_disks_at_boot
 }
 .dont_use_reu
 	rts
-	
+
 !if SUPPORT_REU = 1 {
 .copy_data_from_disk_1_to_reu
 	lda use_reu
@@ -1800,19 +1819,19 @@ insert_disks_at_boot
 	sta z_temp + 3 ; Highbyte of current page in REU memory
 	sta z_temp + 6 ; Sector# to read next, lowbyte
 	sta z_temp + 7 ; Sector# to read next, highbyte
-	
+
 	jsr copy_data_from_disk_at_zp_temp_to_reu
 	jmp .restore_xy_disk_done
 
 copy_data_from_disk_at_zp_temp_to_reu
 ; zp_temp holds memory index into disk_info where info on this disk begins
-; Perform initial copy of data to REU	
+; Perform initial copy of data to REU
 	ldx zp_temp
 	lda disk_info + 6,x
 	sta z_temp + 4 ; Last sector# on this disk. Store low-endian
 	lda disk_info + 5,x
 	sta z_temp + 5 ; Last sector# on this disk. Store low-endian
-	
+
 	jsr print_reu_progress_bar
 
 !ifdef TARGET_MEGA65 {
@@ -1892,7 +1911,7 @@ reu_start
 !ifdef TARGET_MEGA65 {
 	ldx #$80 ; Use REU, set vmem to reu loading mode
 	stx use_reu
-.no_reu_present	
+.no_reu_present
 	rts
 } else {
 	lda #>.use_reu_question
@@ -1922,7 +1941,7 @@ reu_start
 	jsr s_printchar
 	lda #13
 	jmp s_printchar
-.no_reu_present	
+.no_reu_present
 	rts
 
 .use_reu_question
@@ -1962,7 +1981,7 @@ print_reu_progress_bar
 } else {
 	ldx #4
 }
--	lsr 
+-	lsr
 	ror reu_progress_ticks
 	dex
 	bne -
@@ -1999,7 +2018,7 @@ prepare_static_high_memory
 	dex
 	bpl -
 
-; Copy vmem info from config blocks to vmap	
+; Copy vmem info from config blocks to vmap
 	lda #6
 	clc
 	adc config_load_address + 4
@@ -2041,8 +2060,8 @@ prepare_static_high_memory
 	sta vmap_z_h - 2,y
 	dex
 	bne -
-	
-; Point to lowbyte array	
+
+; Point to lowbyte array
 	ldy #0
 	lda (zp_temp),y
 	clc
