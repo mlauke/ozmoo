@@ -20,12 +20,7 @@
 !ifdef TARGET_SSW {
 	TARGET_ASSIGNED = 1
 	SUPPORT_80COL = 1;
-	!ifdef SLOW {
-		; This is never used, since VMEM is always enabled for this target
-		!ifndef VMEM {
-;			SKIP_BUFFER = 1
-		}
-	}
+;	VMEM_END_PAGE = $e4
 }
 
 !ifdef TARGET_MEGA65 {

@@ -73,13 +73,18 @@ toggle_darkmode
 
 	php
 	sei
-	lda #Light_Red<<4|Gray
-	sta a_vreg
 ; Toggle darkmode
 	lda darkmode
 	eor #1
 	sta darkmode
-	
+	beq +
+	lda #Light_Blue<<4|Dark_Blue
+	bra ++
++	lda #Dark_Green<<4|Black
+++	sta a_vreg
+	ldx #10
+-	dex
+	bne -
 	lda #v_reg7
 	sta a_vreg
 	plp

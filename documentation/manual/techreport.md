@@ -93,9 +93,9 @@ To further conserve space, the Z-machine has a text compression scheme built in.
 
 ## Disk I/O
 
-Ozmoo is designed to use a floppy disk layout similar to what Infocom used, but it has some extra options such as using multiple disk drives to play bigger games. Config information for the game is stored in sector 0 and 1 of track 1 on the boot disk. The static memory portion of the story file is stored in the track 1 and up on the story disk(s). The boot file, containing the interpreter, dynamic memory and as much of static memory as possible, is stored on the boot disk or  in the remaining free space of the combined boot / story disk.
+Ozmoo is designed to use a floppy disk layout similar to what Infocom used, but it has some extra options such as using multiple disk drives to play bigger games. Config information for the game is stored in sector 0 and 1 of track 1 on the boot disk. The static memory portion of the story file is stored in the track 1 and up on the story disk(s). The boot file, containing the interpreter, dynamic memory and as much of static memory as possible, is stored on the boot disk or in the remaining free space of the combined boot / story disk.
 
-The disk I/O routines are located in disk.asm.  The virtual memory uses read_block and read_blocks to read data from the story file when needed. There is a routine read_track_sector for reading a single sector of the story file specified by track number and sector number.
+The disk I/O routines are located in disk.asm. The virtual memory uses read_block and read_blocks to read data from the story file when needed. There is a routine read_track_sector for reading a single sector of the story file specified by track number and sector number.
 
 ## REU
 
