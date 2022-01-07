@@ -26,7 +26,7 @@ splash_line_y
 	ldy z_temp
 	cpy #5
 	bne splash_line_y
-
+!ifndef TARGET_SSW {
 	lda ti_variable + 2
 	clc
 	adc #<(SPLASHWAIT*60)
@@ -34,9 +34,10 @@ splash_line_y
 	lda ti_variable + 1
 	adc #>(SPLASHWAIT*60)
 	sta z_temp + 1
-	
+}
 -	jsr kernal_getchar
 	cmp #0
+!ifndef TARGET_SSW {
 	bne +
 	ldx z_temp + 2
 	cpx ti_variable + 2
@@ -47,6 +48,9 @@ splash_line_y
 ++	lda z_temp + 1
 	cmp ti_variable + 1
 	bne -
+} else {
+	beq -
+}
 +	
 	lda #147
 	jmp s_printchar

@@ -4,6 +4,11 @@
 	sei
 	!byte $db
 }
+; TEXTUI
+rtc_systime_t = $0300
+crs_x	= $028c
+crs_y	= $028d
+
 
 basic_reset           = $fff8 ; retvec
 SCREEN_HEIGHT         = 24
@@ -17,8 +22,8 @@ CURRENT_DEVICE        	= $ba
 
 ;use_reu				  = $9b
 window_start_row	  = $9c; 4 bytes
-ti_variable           	= $a0; 3 bytes
-num_rows 			 		= $a6 ; !byte 0
+;ti_variable           = $a0; 3 bytes
+num_rows 			  = $a3 ; !byte 0
 
 
 ; Screen kernal stuff. Must be kept together or update s_init in screenkernal.
@@ -133,9 +138,6 @@ last_break_char_buffer_pos = $bf ; !byte 0
 zp_cursorswitch       = $80
 ;zp_screenline         = $81 ; 2 bytes current line (pointer to screen memory)
 
-; TEXTUI
-crs_x	= $028c
-crs_y	= $028d
 zp_screencolumn       = crs_x; 1 byte current cursor column
 zp_screenrow          = crs_y; 1 byte current cursor row
 

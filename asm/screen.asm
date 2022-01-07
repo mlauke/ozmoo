@@ -510,9 +510,12 @@ show_more_prompt
 }
 .check_for_keypress
 	ldx s_screen_width
----	lda ti_variable + 2 ; $a2
+---	
+!ifndef TARGET_SSW {
+	lda ti_variable + 2 ; $a2
 -	cmp ti_variable + 2 ; $a2
 	beq -
+}
 	jsr getchar_and_maybe_toggle_darkmode
 	cmp #0
 	bne +

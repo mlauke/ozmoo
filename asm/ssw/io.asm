@@ -2,7 +2,7 @@
 !source "../../steckschwein-code/steckos/asminc/keyboard.inc"
 
 ; --- Kernel routines ---
-kernal_reset          ; cold reset of the C64
+kernal_reset          ; reset
    +dbg
    rts
 kernal_delay_1ms      ; delay 1 ms
@@ -41,11 +41,16 @@ kernal_save           ;save file
    rts
 
 kernal_readtime:
-	rtc_systime_t = $0300
 ;   +dbg
 	lda rtc_systime_t+0
 	ldx rtc_systime_t+1
 	ldy rtc_systime_t+2
 	rts
 
-kernal_getchar        = krn_getkey; get a character
+kernal_getchar       ; get a character
+   jsr krn_getkey
+   cmp #$F1
+   bne +
+   lda #133 ; charcode F1 PETSCII
++  rts
+
