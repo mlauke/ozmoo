@@ -32,7 +32,7 @@ s_reverse 			  = $b3 ; !byte 0
 
 zp_temp               = $fb ; 5 bytes
 savefile_zp_pointer   = $c1 ; 2 bytes
-first_banked_memory_page = $e0
+first_banked_memory_page = $e4
 ;reu_filled            = $0255 ; 4 bytes
 ;vmap_buffer_start     = $0334
 ;vmap_buffer_end       = $0400 ; Last byte + 1. Should not be more than vmap_buffer_start + 512

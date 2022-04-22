@@ -1761,7 +1761,7 @@ def print_usage
 	puts "  -t: specify target machine. Available targets are c64 (default), c128, plus4, mega65 and ssw."
 	puts "  -S1|-S2|-D2|-D3|-71|-81|-P: build mode. Defaults to S1 (71 for C128, 81 for MEGA65). See docs."
 	puts "  -v: Verbose mode. Print as much details as possible about what make.rb is doing."
-	puts "  -p: preload a a maximum of n virtual memory blocks to make game faster at start."
+	puts "  -p: preload a maximum of n virtual memory blocks to make game faster at start."
 	puts "  -b: only preload virtual memory blocks that can be included in the boot file."
 	puts "  -o: build interpreter in PREOPT (preload optimization) mode. See docs for details."
 	puts "  -c: read preload config from preloadfile, previously created with -o"
@@ -1865,7 +1865,7 @@ begin
 			    $start_address = 0x1001
          elsif $target == "ssw" then
             $start_address = 0x800
-            $memory_end_address = 0xe400
+            $memory_end_address = 0xe800
             $unbanked_ram_end_address = $memory_end_address
 				$normal_ram_end_address = $memory_end_address
 			elsif $target == "plus4" then
