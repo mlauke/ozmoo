@@ -2,6 +2,9 @@
 
 require 'fileutils'
 
+$sound_format = "wav"
+#$sound_format = "aiff"
+
 $is_windows = (ENV['OS'] == 'Windows_NT')
 
 if $is_windows then
@@ -102,7 +105,9 @@ $compmem_filename = File.join($TEMPDIR, 'compmem.tmp')
 $universal_file = File.join($TEMPDIR, 'universal')
 
 $trinity_releases = {
-	"r15-s870628" => "fd93 ba bb e2"
+	"r11-s860509" => "fddd 2058 01",
+	"r12-s860926" => "fddd 2048 01",
+	"r15-s870628" => "fd8d 2048 01"
 }
 
 $beyondzork_releases = {
@@ -1008,6 +1013,7 @@ def build_specific_boot_file(vmem_preload_blocks, vmem_contents)
    elsif $target == 'ssw'
 #      exo_cmd = "mem"
 	end
+
 #	exomizer_cmd = "#{$EXOMIZER} sfx basic -B -X \'LDA $D012 STA $D020 STA $D418\' ozmoo #{$compmem_filename},#{$storystart} -o ozmoo_zip"
 #	exomizer_cmd = "#{$EXOMIZER} sfx #{$start_address} -B -M256 -C -x1 #{font_clause} \"#{$ozmoo_file}\"#{compmem_clause} -o \"#{$zip_file}\""
  #  -Di_irq_during=0 -Di_irq_exit=0
@@ -1101,6 +1107,11 @@ def add_boot_file(finaldiskname, diskimage_filename)
 	c1541_cmd = "#{$C1541} #{opt}-attach \"#{finaldiskname}\" -write \"#{$good_zip_file}\" #{$file_name}"
 	if $target == "mega65" then
 		c1541_cmd = "#{$C1541} #{opt}-attach \"#{finaldiskname}\" -write \"#{$universal_file}\" autoboot.c65"
+		$soundfiles.each do |file|
+			f = file
+			f = f.gsub(/\//,"\\") if $is_windows 
+		    c1541_cmd += " -write \"#{f}\""
+		end
 	end
 	if $verbose
 		puts c1541_cmd
@@ -1759,6 +1770,7 @@ def print_usage
 	puts "         [-sw:[nnn]] [-cb:[n]] [-cc:[n]] [-dmcc:[n]] [-cs:[b|u|l]] "
 	puts "         <storyfile>"
 	puts "  -t: specify target machine. Available targets are c64 (default), c128, plus4, mega65 and ssw."
+#	puts "         [-as <soundpath>] <storyfile>"
 	puts "  -S1|-S2|-D2|-D3|-71|-81|-P: build mode. Defaults to S1 (71 for C128, 81 for MEGA65). See docs."
 	puts "  -v: Verbose mode. Print as much details as possible about what make.rb is doing."
 	puts "  -p: preload a maximum of n virtual memory blocks to make game faster at start."
@@ -1788,6 +1800,7 @@ def print_usage
 	puts "  -cb: Set cursor blink frequency (1-99, where 1 is fastest)."
 	puts "  -cc/dmcc: Use the specified cursor colour.  Defaults to foreground colour."
 	puts "  -cs: Use the specified cursor shape.  ([b]lock (default), [u]nderscore or [l]ine)"
+#	puts "  -as: Add the sound files found at the specified path (003.#{$sound_format} - 255.#{$sound_format})"
 	puts "  storyfile: path optional (e.g. infocom/zork1.z3)"
 end
 
@@ -1798,10 +1811,13 @@ mode = nil
 $interpreter_number = nil
 i = 0
 fill_preload = nil
+await_soundpath = false
 await_preloadfile = false
 await_fontfile = false
 await_imagefile = false
 preloadfile = nil
+$soundpath = nil
+$soundfiles = []
 $font_filename = nil
 $font_address = nil
 $loader_pic_file = nil
@@ -1843,6 +1859,9 @@ begin
 		if await_preloadfile then
 			await_preloadfile = false
 			preloadfile = ARGV[i]
+		elsif await_soundpath then
+			await_soundpath = false
+			$soundpath = ARGV[i]
 		elsif await_fontfile then
 			await_fontfile = false
 			$font_filename = ARGV[i]
@@ -1923,6 +1942,8 @@ begin
 			$stack_pages = $1.to_i
 		elsif ARGV[i] =~ /^-cm:(sv|da|de|it|es|fr)$/ then
 			$char_map = $1
+		elsif ARGV[i] =~ /^-as$/ then
+			await_soundpath = true
 		elsif ARGV[i] =~ /^-cf$/ then
 			await_preloadfile = true
 			fill_preload = true
@@ -1974,7 +1995,7 @@ rescue => e
 	exit 1
 end
 
-print_usage_and_exit() if await_preloadfile or await_fontfile or await_imagefile
+print_usage_and_exit() if await_soundpath or await_preloadfile or await_fontfile or await_imagefile
 
 unless mode
 	if $target == 'c128'
@@ -2049,6 +2070,26 @@ if $font_filename
 		puts "ERROR: Custom fonts are currently not supported for this target platform."
 		exit 1
 	end
+end
+
+if $soundpath
+	if $target != 'mega65'
+		puts "ERROR: Sound is only supported for the MEGA65 target platform."
+		exit 1
+	end
+	$soundpath += '/' if $soundpath !~ /\/$/ 
+	$soundfiles = Dir.glob($soundpath + '*').select { |e|
+#		/^([0-9]{3})\.#{$sound_format}$/
+#		puts e
+		File.file?(e) && m = e[$soundpath.length .. -1].match(/^([0-9]{3})\.#{$sound_format}$/) # && m[1].to_i.between?(3,255)
+	}
+	if $soundfiles.empty?
+		puts "ERROR: No sound files found. Note that sound files must be named 003.#{$sound_format}, 004.#{$sound_format} etc."
+		exit 1
+	end
+	$soundfiles.sort!
+	$GENERALFLAGS.push('SOUND');
+#	puts $soundfiles
 end
 
 $VMEM = (mode != MODE_P)

@@ -427,7 +427,8 @@ read_operand
 	+read_next_byte_at_z_pc
 	tax
 	lda z_temp + 2
-	jmp .store_operand ; Always branch
+	jmp .store_operand ; Always branch
+
 .operand_is_not_large_constant
 	+read_next_byte_at_z_pc
 	cpx #%00000001
@@ -645,8 +646,19 @@ z_get_referenced_value
 	lda #ERROR_USED_NONEXISTENT_LOCAL_VAR
 	jsr fatalerror
 }
-	
-; z_get_variable_value
+
+!ifndef Z4PLUS {
+	GET_LOW_GLOBAL_NEEDED = 1
+} else {
+	!ifndef COMPLEX_MEMORY {
+		!ifdef SLOW {
+			GET_LOW_GLOBAL_NEEDED = 1
+		}
+	}
+}
+
+
+!ifdef GET_LOW_GLOBAL_NEEDED {
 z_get_low_global_variable_value
 	; Read global var 0-111
 	; input: a = variable# + 16 (16-127)
@@ -655,16 +667,6 @@ z_get_low_global_variable_value
 !ifdef TARGET_C128 {
 	lda #z_low_global_vars_ptr
 	jmp read_word_from_bank_1_c128
-	; sta $02aa
-	; ldx #$7f
-	; jsr $02a2
-	; pha
-	; iny
-	; ldx #$7f
-	; jsr $02a2
-	; tax
-	; pla
-	; rts
 } else {
 	; Not TARGET_C128
 	iny
@@ -676,7 +678,7 @@ z_get_low_global_variable_value
 	+after_dynmem_read
 	rts ; Note that caller may assume that carry is clear on return!
 } ; End else - Not TARGET_C128
-
+} ; End ifdef GET_LOW_GLOBAL_NEEDED
 
 ; Used by z_set_variable
 .write_to_stack
@@ -1613,54 +1615,7 @@ z_ins_random
 	
 ; z_ins_output_stream jumps directly to streams_output_stream.
 
-z_ins_sound_effect
-	lda #$08
-	ldx z_operand_value_low_arr
-	dex
-	beq .sound_high_pitched_beep
-	dex
-	beq .sound_low_pitched_beep
-	rts
-!ifdef HAS_SID {	
-.sound_high_pitched_beep
-	lda #$40
-.sound_low_pitched_beep
-	sta $d401
-	lda #$21
-	sta $d404
-	ldy #40
---	ldx #0
--	dex
-	bne -
-	dey
-	bne --
-	lda #$20
-	sta $d404
-	rts
-} else {
-	!ifdef TARGET_PLUS4 {
-.sound_high_pitched_beep
-	lda #$f2
-.sound_low_pitched_beep
-	sta ted_voice_2_low
-	sta ted_voice_2_high
-	lda #32 + 15
-	sta ted_volume
-	ldy #40
---	ldx #0
--	dex
-	bne -
-	dey
-	bne --
-	lda #0 + 15
-	sta ted_volume
-	rts
-	} else {
-.sound_high_pitched_beep
-.sound_low_pitched_beep
-	rts
-	}
-}
+; z_ins_sound_effect moved to sound.asm
 
 !ifdef Z4PLUS {
 z_ins_scan_table
